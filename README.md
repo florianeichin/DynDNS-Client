@@ -4,6 +4,7 @@ You could add this to your setup and a daily cronjob to update your DynDNS ona d
 
 You will need some inofrmation to configure the system.
 The Update Url for instance. You get those information from your Domain Registrar. Here are some examples.:
+
 | Registrar|Update Url|
 |---|---|
 | DNS_O_Matic | "https://update.dnsomatic.com/nic/update" |

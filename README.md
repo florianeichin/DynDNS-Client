@@ -1,6 +1,6 @@
 # Dynamic DNS Client
 This client enables you to update your DynDNS based on DynDNS v2 Protocol, which is available here http://dyn.com/support/developers/api/ 
-You could add this to your setup and a daily cronjob to update your DynDNS ona daily basis.
+You could add this to your setup and a daily cronjob to update your DynDNS on a daily basis.
 
 You will need some inofrmation to configure the system.
 The Update Url for instance. You get those information from your Domain Registrar. Here are some examples.:

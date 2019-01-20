@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -20,7 +21,7 @@ type Configuration struct {
 }
 
 func main() {
-	configuration := Configuration{}
+	configuration := []Configuration{}
 	file, err := os.Open("./config.json")
 	if err != nil {
 		panic(err)
@@ -31,27 +32,44 @@ func main() {
 		panic(err)
 	}
 
-	s := ddns.Service{
-		configuration.Url,
-		configuration.Username,
-		configuration.Password}
-	ip, err := getIP()
+	ip, err := getGlobalIP()
 	if err != nil {
 		panic(err)
 	}
-	_, err = s.Update(configuration.Hostname, ip)
-	if err != nil && strings.Contains(err.Error(), "nochg") {
-		panic(err)
+
+	for _, config := range configuration {
+		s := ddns.Service{
+			config.Url,
+			config.Username,
+			config.Password}
+		currentIP, err := net.LookupIP(config.Hostname)
+		if err != nil {
+			fmt.Printf("[ERROR] Lookup failed: %s \n", config.Hostname)
+			continue
+		}
+		if contains(currentIP, ip) {
+			fmt.Printf("[INFO] nothing changed: %s \n", config.Hostname)
+			continue
+		}
+		_, err = s.Update(config.Hostname, ip)
+		if err == nil {
+			fmt.Printf("[INFO] updated: %s \n", config.Hostname)
+		} else {
+			panic(err)
+		}
 	}
 }
 
-func getIP() (net.IP, error) {
+func getGlobalIP() (net.IP, error) {
 	response, err := http.Get("http://myexternalip.com/raw")
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 	content, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
 	parts := strings.Split(string(content), ".")
 	var ips [4]byte
 	for i, a := range parts {
@@ -59,4 +77,13 @@ func getIP() (net.IP, error) {
 		ips[i] = byte(tmp)
 	}
 	return net.IPv4(ips[0], ips[1], ips[2], ips[3]), nil
+}
+
+func contains(currentIPS []net.IP, ip net.IP) bool {
+	for _, i := range currentIPS {
+		if i.Equal(ip) {
+			return true
+		}
+	}
+	return false
 }

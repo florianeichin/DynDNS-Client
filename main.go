@@ -55,7 +55,7 @@ func main() {
 	}
 
 	for _, config := range configuration.DNSConfig {
-		s := ddns.Service{config.URL, config.Username, config.Password}
+		s := ddns.Service{URL: config.URL, Username: config.Username, Password: config.Password}
 		currentIP, err := net.LookupIP(config.Hostname)
 		if err != nil {
 			log.Errorf("Lookup failed: %s", config.Hostname)

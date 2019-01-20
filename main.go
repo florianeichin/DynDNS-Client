@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -11,51 +10,66 @@ import (
 	"strings"
 
 	ddns "github.com/jayschwa/go-dyndns"
+	log "github.com/sirupsen/logrus"
 )
 
+// Configuration holds the complete JSON configuration data
 type Configuration struct {
-	Url      string
+	Logfile   string
+	DNSConfig []DNSConfig
+}
+
+// DNSConfig holds all data, that is used for connecting to the DNS Service
+type DNSConfig struct {
+	URL      string
 	Username string
 	Password string
 	Hostname string
 }
 
 func main() {
-	configuration := []Configuration{}
+	configuration := Configuration{}
 	file, err := os.Open("./config.json")
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
+	defer file.Close()
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&configuration)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
+
+	logfile, err := os.OpenFile(configuration.Logfile, os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	defer file.Close()
+
+	log.SetOutput(logfile)
 
 	ip, err := getGlobalIP()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
-	for _, config := range configuration {
-		s := ddns.Service{
-			config.Url,
-			config.Username,
-			config.Password}
+	for _, config := range configuration.DNSConfig {
+		s := ddns.Service{config.URL, config.Username, config.Password}
 		currentIP, err := net.LookupIP(config.Hostname)
 		if err != nil {
-			fmt.Printf("[ERROR] Lookup failed: %s \n", config.Hostname)
+			log.Errorf("Lookup failed: %s", config.Hostname)
 			continue
 		}
 		if contains(currentIP, ip) {
-			fmt.Printf("[INFO] nothing changed: %s \n", config.Hostname)
+			log.Infof("nothing changed: %s", config.Hostname)
 			continue
 		}
 		_, err = s.Update(config.Hostname, ip)
 		if err == nil {
-			fmt.Printf("[INFO] updated: %s \n", config.Hostname)
+			log.Infof("updated: %s", config.Hostname)
 		} else {
-			panic(err)
+			log.Panic(err)
 		}
 	}
 }

@@ -17,7 +17,7 @@ The Update Url for instance. You get those information from your Domain Registra
 
 ## Getting Started
 - Get the Source (```git clone https://github.com/florianeichin/DynDNS-Client.git```)
-- Get the dependencies (```go get "github.com/jayschwa/go-dyndns" ```)
+- Get the dependencies (```go get "github.com/jayschwa/go-dyndns" && go get "github.com/Sirupsen/logrus"```)
 - Navigate into project (```cd DynDNS-Client```)
 - Rename example.config.json to config.json (```mv example.config.json config.json```)
 - Edit the config.json to your needs. You get the data from your registrar.

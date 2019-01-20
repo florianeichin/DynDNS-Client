@@ -1,6 +1,17 @@
-[{
-    "Url":"dyndns.axample.com/update",
-    "Username":"user",
-	"Password" :"pw",
-	"Hostname" :"mydnymicurl.example.com"
-}]
+{
+    "Logfile": "./info.log",
+    "DNSConfig": [
+        {
+            "Url":"dyndns.example.com/update",
+            "Username":"user",
+            "Password" :"pw",
+            "Hostname" :"mydnymicurl.example.com"
+        },
+        {
+            "Url":"dyndns.example.com/update",
+            "Username":"user2",
+            "Password" :"pw2",
+            "Hostname" :"mydnymicurl2.example.com"
+        }
+    ]
+}

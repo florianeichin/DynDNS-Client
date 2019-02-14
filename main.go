@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	ddns "github.com/jayschwa/go-dyndns"
 	log "github.com/sirupsen/logrus"
@@ -39,39 +40,43 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
-	logfile, err := os.OpenFile(configuration.Logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	defer file.Close()
-
-	log.SetOutput(logfile)
-
-	ip, err := getGlobalIP()
-	if err != nil {
-		log.Panic(err)
-	}
-
-	for _, config := range configuration.DNSConfig {
-		s := ddns.Service{URL: config.URL, Username: config.Username, Password: config.Password}
-		currentIP, err := net.LookupIP(config.Hostname)
+	if configuration.Logfile != "" {
+		logfile, err := os.OpenFile(configuration.Logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Errorf("Lookup failed: %s", config.Hostname)
-			continue
-		}
-		if contains(currentIP, ip) {
-			log.Infof("nothing changed: %s", config.Hostname)
-			continue
-		}
-		_, err = s.Update(config.Hostname, ip)
-		if err == nil {
-			log.Infof("updated: %s", config.Hostname)
-		} else {
 			log.Panic(err)
 		}
+		defer logfile.Close()
+		log.SetOutput(logfile)
 	}
+
+	for true {
+		ip, err := getGlobalIP()
+		if err != nil {
+			log.Panic(err)
+		}
+
+		for _, config := range configuration.DNSConfig {
+			s := ddns.Service{URL: config.URL, Username: config.Username, Password: config.Password}
+			currentIP, err := net.LookupIP(config.Hostname)
+			if err != nil {
+				log.Errorf("Lookup failed: %s", config.Hostname)
+				continue
+			}
+			if contains(currentIP, ip) {
+				log.Infof("nothing changed: %s", config.Hostname)
+				continue
+			}
+			_, err = s.Update(config.Hostname, ip)
+			if err == nil {
+				log.Infof("updated: %s", config.Hostname)
+			} else {
+				log.Panic(err)
+			}
+		}
+		log.Infof("Waiting %d Hours", 1)
+		time.Sleep(1 * time.Hour)
+	}
+
 }
 
 func getGlobalIP() (net.IP, error) {

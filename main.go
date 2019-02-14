@@ -40,7 +40,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	logfile, err := os.OpenFile(configuration.Logfile, os.O_CREATE|os.O_APPEND, 0644)
+	logfile, err := os.OpenFile(configuration.Logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Panic(err)
 	}
